@@ -92,7 +92,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-3 glass-card px-6 py-3">
                 <Trophy className="text-stadium-green" />
-                <span>₹50,000 Prize Pool</span>
+                <span>Exciting Schwags</span>
               </div>
             </div>
             

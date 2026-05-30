@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { setRegistrationOpen, getRegistrationOpen } from '@/app/api/register/route'
+import { setRegistrationOpen, getRegistrationOpen } from '@/lib/registrationStatus'
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123'
 

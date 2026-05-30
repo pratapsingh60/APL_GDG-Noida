@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { addParticipant, getAllParticipants } from '@/services/sheetsService'
-
-// In-memory storage for registration status (since JSON file doesn't work on Vercel)
-// For production, store this in Google Sheets too
-let registrationOpen = true
+import { getRegistrationOpen } from '@/lib/registrationStatus'
 
 function generateId(participants: any[]) {
   const nextNumber = participants.length + 1
@@ -20,8 +17,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
     
-    // IMPORTANT: Check if registration is open
-    if (!registrationOpen) {
+    // Check if registration is open
+    if (!getRegistrationOpen()) {
       return NextResponse.json({ error: 'Registration is closed. Please contact the organizer.' }, { status: 400 })
     }
     
@@ -70,7 +67,7 @@ export async function GET() {
   try {
     const participants = await getAllParticipants()
     return NextResponse.json({
-      registrationOpen: registrationOpen,
+      registrationOpen: getRegistrationOpen(),
       participantCount: participants.length,
       participants: participants,
       lastUpdated: new Date().toISOString()
@@ -78,14 +75,4 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 })
   }
-}
-
-// Admin function to toggle registration (called from admin API)
-export function setRegistrationOpen(status: boolean) {
-  registrationOpen = status
-  return registrationOpen
-}
-
-export function getRegistrationOpen() {
-  return registrationOpen
 }

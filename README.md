@@ -40,11 +40,6 @@ GDG Noida APL 2026 is a premier coding challenge where developers build innovati
 - **Message Quality (20%)** - Clear, descriptive commit messages
 - **Authenticity (10%)** - Genuine building behavior detection
 
-## Event Details
-
-- **Date:** 31st May 2026
-- **Time:** 6:00 PM - 10:00 PM IST
-- **Venue:** Moire Cafe, Noida
 
 ## Technology
 

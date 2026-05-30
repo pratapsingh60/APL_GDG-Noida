@@ -4,8 +4,12 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  output: 'export',
+  // REMOVE output: 'export' - it breaks API routes
+  // output: 'export',  // DELETE THIS LINE
   trailingSlash: true,
+  turbopack: {
+    root: process.cwd(),
+  },
 }
 
 module.exports = nextConfig
