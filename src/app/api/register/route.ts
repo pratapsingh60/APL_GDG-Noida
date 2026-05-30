@@ -12,19 +12,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { fullName, designation, gender, problemStatement, githubRepo } = body
     
-    // Check if all fields are provided
     if (!fullName || !designation || !gender || !problemStatement || !githubRepo) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
     
-    // Check if registration is open
     if (!getRegistrationOpen()) {
-      return NextResponse.json({ error: 'Registration is closed. Please contact the organizer.' }, { status: 400 })
+      return NextResponse.json({ error: 'Registration is closed' }, { status: 400 })
     }
     
     const participants = await getAllParticipants()
     
-    // Check if already registered
     const existing = participants.find((p: any) => p['GitHub Repo'] === githubRepo)
     if (existing) {
       return NextResponse.json({ error: 'GitHub repository already registered' }, { status: 400 })
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest) {
         message: 'Registration successful! Your ID is ' + newParticipant.id
       })
     } else {
-      return NextResponse.json({ error: 'Failed to save to Google Sheets' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
     }
     
   } catch (error) {
