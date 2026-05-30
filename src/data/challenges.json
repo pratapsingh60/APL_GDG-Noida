@@ -1,0 +1,38 @@
+[
+  {
+    "id": "habit-builder",
+    "title": "Gamified Habit Builder",
+    "icon": "Gamepad",
+    "tagline": "Turn real-life progress into an interactive, high-stakes game",
+    "description": "Create a solution that translates everyday habits into engaging game loops. Use streaks, duels, status points, RPG elements, or social accountability to keep users hooked on their self-improvement journey.",
+    "scoring": ["Innovation (40%)", "Technical Implementation (30%)", "UI/UX Design (20%)", "Presentation (10%)"],
+    "timeLimit": "4 Hours"
+  },
+  {
+    "id": "ai-agent",
+    "title": "Autonomous AI Agent",
+    "icon": "Bot",
+    "tagline": "Build an AI that acts, not just responds",
+    "description": "Develop an autonomous agent that can perform multi-step tasks, make decisions, and interact with external APIs. Think beyond chatbots - create a true digital worker.",
+    "scoring": ["Autonomy & Decision Making (35%)", "Integration & Tools (30%)", "Problem Complexity (20%)", "User Experience (15%)"],
+    "timeLimit": "4 Hours"
+  },
+  {
+    "id": "real-time-collab",
+    "title": "Real-time Collaboration Hub",
+    "icon": "Users",
+    "tagline": "Connect people in real-time",
+    "description": "Build a real-time collaborative platform where multiple users can interact, share data, and work together seamlessly. Focus on WebSocket/P2P architecture.",
+    "scoring": ["Real-time Performance (35%)", "Collaboration Features (30%)", "Scalability (20%)", "UI Polish (15%)"],
+    "timeLimit": "4 Hours"
+  },
+  {
+    "id": "data-viz",
+    "title": "Interactive Data Visualizer",
+    "icon": "BarChart",
+    "tagline": "Turn complex data into beautiful stories",
+    "description": "Create stunning, interactive data visualizations that help users understand complex datasets. Focus on animations, interactivity, and insights.",
+    "scoring": ["Visual Design (35%)", "Interactivity (30%)", "Data Processing (20%)", "Performance (15%)"],
+    "timeLimit": "4 Hours"
+  }
+]
