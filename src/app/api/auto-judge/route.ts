@@ -1,51 +1,40 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-import { autoJudgeAll, isJudgingActive } from '@/services/autoJudgeService'
+import { autoJudgeAll } from '@/services/autoJudgeService'
 
-const participantsFile = path.join(process.cwd(), 'src/data/participants.json')
+// This should match the same variable - in production, use a database
+let judgingEnabled = false
 
 export async function GET() {
   try {
-    const data = JSON.parse(fs.readFileSync(participantsFile, 'utf8'))
+    console.log('Auto-judge called, judgingEnabled:', judgingEnabled)
     
-    if (!isJudgingActive(data.judgingEnabled)) {
+    if (!judgingEnabled) {
       return NextResponse.json({ 
-        message: 'Judging is not active',
-        judgingEnabled: data.judgingEnabled,
-        active: false
+        message: 'Judging is not active', 
+        judgingEnabled: false, 
+        active: false 
       })
     }
     
-    const unjudged = data.participants.filter((p: any) => !p.judged)
-    
-    if (unjudged.length === 0) {
-      return NextResponse.json({ 
-        message: 'All participants have been judged',
-        active: true,
-        judged: data.participants.filter((p: any) => p.judged).length
-      })
-    }
-    
-    const { updated, failed } = await autoJudgeAll(unjudged)
-    
-    for (const updatedParticipant of updated) {
-      const index = data.participants.findIndex((p: any) => p.id === updatedParticipant.id)
-      if (index !== -1) {
-        data.participants[index] = updatedParticipant
-      }
-    }
-    
-    data.lastUpdated = new Date().toISOString()
-    fs.writeFileSync(participantsFile, JSON.stringify(data, null, 2))
+    const { updated, failed } = await autoJudgeAll()
     
     return NextResponse.json({
       success: true,
       message: `Judged ${updated.length} participants (${failed} failed)`,
-      active: true
+      active: true,
+      judgedCount: updated.filter((p: any) => !p.disqualified).length,
+      disqualifiedCount: updated.filter((p: any) => p.disqualified).length
     })
     
   } catch (error: any) {
+    console.error('Auto-judge error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+}
+
+export async function POST(request: Request) {
+  const { enabled } = await request.json()
+  judgingEnabled = enabled
+  console.log('Auto-judge enabled set to:', judgingEnabled)
+  return NextResponse.json({ success: true, judgingEnabled })
 }

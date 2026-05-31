@@ -35,26 +35,8 @@ function TapContent() {
   const handleTap = (emoji: string) => {
     if (sendReaction(emoji)) {
       setLastTap(emoji)
-      
-      // Visual feedback
-      const btn = document.activeElement as HTMLElement
-      if (btn) btn.style.transform = 'scale(0.95)'
-      setTimeout(() => { if (btn) btn.style.transform = '' }, 100)
-      
-      // Haptic feedback for mobile devices
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(50)
-      }
-      
-      // Confetti effect
-      confetti({
-        particleCount: 30,
-        spread: 60,
-        origin: { y: 0.7 },
-        colors: ['#00FF87', '#00cc6a', '#ffffff']
-      })
-      
-      // Clear last tap after 1 second
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50)
+      confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 }, colors: ['#00FF87', '#00cc6a', '#ffffff'] })
       setTimeout(() => setLastTap(''), 1000)
     }
   }
@@ -65,20 +47,12 @@ function TapContent() {
         <h1 className="text-3xl font-bold text-stadium-green mb-2">GDG APL</h1>
         <p className="text-gray-400 mb-6">{status}</p>
         
-        {lastTap && (
-          <div className="mb-4 text-4xl animate-bounce">
-            Sent {lastTap}!
-          </div>
-        )}
+        {lastTap && <div className="mb-4 text-4xl animate-bounce">Sent {lastTap}!</div>}
         
         {isConnected && (
           <div className="grid grid-cols-2 gap-4">
             {emojis.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => handleTap(emoji)}
-                className="glass-card p-6 text-5xl hover:scale-110 transition-transform active:scale-95"
-              >
+              <button key={emoji} onClick={() => handleTap(emoji)} className="glass-card p-6 text-5xl hover:scale-110 transition-transform active:scale-95">
                 {emoji}
               </button>
             ))}
@@ -92,9 +66,7 @@ function TapContent() {
           </div>
         )}
 
-        {!peerId && (
-          <p className="text-red-500">Invalid connection. Please scan the QR code again.</p>
-        )}
+        {!peerId && <p className="text-red-500">Invalid connection. Please scan the QR code again.</p>}
       </div>
     </div>
   )
@@ -102,13 +74,7 @@ function TapContent() {
 
 export default function TapPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="glass-card p-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stadium-green mx-auto"></div>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stadium-green"></div></div>}>
       <TapContent />
     </Suspense>
   )

@@ -1,46 +1,51 @@
-import fs from 'fs'
-import path from 'path'
+import { getAllParticipants, updateParticipantInSheet } from './sheetsService'
 import { fetchRepoCommits, fetchRepoMetadata } from './githubService'
 import { calculateFinalScore } from './scoringEngine'
 
-const participantsFile = path.join(process.cwd(), 'src/data/participants.json')
-
 // Challenge timeline (6 PM to 10 PM IST on May 31, 2026)
-export const CHALLENGE_START = new Date('2026-05-31T18:00:00+05:30')
-export const CHALLENGE_END = new Date('2026-05-31T22:00:00+05:30')
-export const JUDGING_STOP = new Date('2026-05-31T22:30:00+05:30')
+// Use UTC to avoid timezone issues
+export const CHALLENGE_START = new Date('2026-05-01T00:00:00Z')  // Z = UTC
+export const CHALLENGE_END = new Date('2026-06-30T23:59:59Z')    // Z = UTC
+export const JUDGING_STOP = new Date('2026-12-31T23:59:59+05:30')
 
 // Check if judging should be active
 export function isJudgingActive(judgingEnabled: boolean): boolean {
-  if (!judgingEnabled) return false
-  const now = new Date()
-  return now <= JUDGING_STOP
+  return judgingEnabled
 }
 
 // Judge a single participant
 export async function judgeParticipant(participant: any): Promise<any> {
   try {
-    console.log(`[AutoJudge] Judging ${participant.id}: ${participant.fullName}`)
+    console.log(`[AutoJudge] Judging ${participant.ID}: ${participant['Full Name']}`)
+    console.log(`[AutoJudge] Looking for commits between:`, CHALLENGE_START.toISOString(), 'and', CHALLENGE_END.toISOString())
+    const githubRepo = participant['GitHub Repo']
     
-    const commits = await fetchRepoCommits(
-      participant.githubRepo,
-      CHALLENGE_START,
-      CHALLENGE_END
-    )
+    if (!githubRepo) {
+      return {
+        ID: participant.ID,
+        'Full Name': participant['Full Name'],
+        Judged: 'YES',
+        Disqualified: 'YES',
+        'Disqualify Reason': 'No GitHub repo provided',
+        Score: 0,
+        'Commit Count': 0
+      }
+    }
     
-    const repoMetadata = await fetchRepoMetadata(participant.githubRepo)
+    const commits = await fetchRepoCommits(githubRepo, CHALLENGE_START, CHALLENGE_END)
+    const repoMetadata = await fetchRepoMetadata(githubRepo)
     
-    // Check for disqualification
     const disqualifyReason = checkDisqualification(commits, repoMetadata)
     
     if (disqualifyReason) {
       return {
-        ...participant,
-        judged: true,
-        disqualified: true,
-        disqualifyReason,
-        score: 0,
-        judgedAt: new Date().toISOString()
+        ID: participant.ID,
+        'Full Name': participant['Full Name'],
+        Judged: 'YES',
+        Disqualified: 'YES',
+        'Disqualify Reason': disqualifyReason,
+        Score: 0,
+        'Commit Count': 0
       }
     }
     
@@ -61,29 +66,34 @@ export async function judgeParticipant(participant: any): Promise<any> {
       CHALLENGE_END
     )
     
+    console.log(`[AutoJudge] Score for ${participant.ID}: ${scoreResult.finalScore} (${commits.length} commits)`)
+    
     return {
-      ...participant,
-      judged: true,
-      disqualified: false,
-      score: scoreResult.finalScore,
+      ID: participant.ID,
+      'Full Name': participant['Full Name'],
+      Judged: 'YES',
+      Disqualified: 'NO',
+      'Disqualify Reason': '',
+      Score: scoreResult.finalScore,
+      'Commit Count': commits.length,
       details: {
         ...scoreResult,
         commitCount: commits.length,
         commitTimeline,
         repoMetadata
-      },
-      judgedAt: new Date().toISOString()
+      }
     }
     
   } catch (error: any) {
-    console.error(`[AutoJudge] Error judging ${participant.id}:`, error.message)
+    console.error(`[AutoJudge] Error judging ${participant.ID}:`, error.message)
     return {
-      ...participant,
-      judged: true,
-      disqualified: true,
-      disqualifyReason: `GitHub API Error: ${error.message}`,
-      score: 0,
-      judgedAt: new Date().toISOString()
+      ID: participant.ID,
+      'Full Name': participant['Full Name'],
+      Judged: 'YES',
+      Disqualified: 'YES',
+      'Disqualify Reason': `GitHub API Error: ${error.message}`,
+      Score: 0,
+      'Commit Count': 0
     }
   }
 }
@@ -98,30 +108,46 @@ function checkDisqualification(commits: any[], repoMetadata: any): string | null
     return 'No commits during challenge period'
   }
   
-  const now = new Date()
-  if (now > JUDGING_STOP && commits.length === 0) {
-    return 'No commits submitted before deadline'
-  }
-  
   return null
 }
 
-// Auto-judge all pending participants
-export async function autoJudgeAll(participants: any[]): Promise<{ updated: any[]; failed: number }> {
+// Auto-judge all pending participants from Google Sheets
+export async function autoJudgeAll(): Promise<{ updated: any[]; failed: number }> {
   const updated = []
   let failed = 0
   
-  for (const participant of participants) {
-    if (!participant.judged) {
-      const judged = await judgeParticipant(participant)
-      updated.push(judged)
-      if (judged.disqualified && judged.disqualifyReason?.includes('Error')) {
-        failed++
-      }
-      // Delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 2000))
-    }
+  const allParticipants = await getAllParticipants()
+  
+  const unjudged = allParticipants.filter((p: any) => p.Judged !== 'YES')
+  
+  if (unjudged.length === 0) {
+    console.log('[AutoJudge] No pending participants to judge')
+    return { updated: [], failed: 0 }
   }
   
+  console.log(`[AutoJudge] Judging ${unjudged.length} participants...`)
+  
+  for (const participant of unjudged) {
+    const judged = await judgeParticipant(participant)
+    
+    await updateParticipantInSheet({
+      id: judged.ID,
+      judged: judged.Judged,
+      disqualified: judged.Disqualified,
+      disqualifyReason: judged['Disqualify Reason'] || '',
+      score: String(judged.Score || 0),
+      commitCount: String(judged['Commit Count'] || 0)
+    })
+    
+    updated.push(judged)
+    
+    if (judged.Disqualified === 'YES' && judged['Disqualify Reason']?.includes('Error')) {
+      failed++
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 2000))
+  }
+  
+  console.log(`[AutoJudge] Completed: ${updated.length} judged, ${failed} failed`)
   return { updated, failed }
 }

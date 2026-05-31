@@ -15,6 +15,15 @@ export default function Home() {
     minutes: 0,
     seconds: 0
   })
+  const [projectorVisible, setProjectorVisible] = useState(true)
+
+  // Fetch projector visibility setting
+  useEffect(() => {
+    fetch('/api/header-settings')
+      .then(res => res.json())
+      .then(data => setProjectorVisible(data.projectorVisible))
+      .catch(err => console.error('Failed to fetch projector settings:', err))
+  }, [])
 
   useEffect(() => {
     setChallenges(challengesData)
@@ -96,7 +105,7 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Main CTA Buttons */}
+            {/* Main CTA Buttons - Now with conditional Live button */}
             <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/register" className="btn-primary flex items-center gap-2">
                 <UserPlus className="w-5 h-5" />
@@ -106,10 +115,12 @@ export default function Home() {
                 <TrophyIcon className="w-5 h-5" />
                 View Leaderboard
               </Link>
-              <Link href="/projector" className="btn-secondary flex items-center gap-2">
-                <Eye className="w-5 h-5" />
-                Live Projector
-              </Link>
+              {projectorVisible && (
+                <Link href="/projector" className="btn-secondary flex items-center gap-2">
+                  <Eye className="w-5 h-5" />
+                  Live Projector
+                </Link>
+              )}
             </div>
           </div>
         </div>
