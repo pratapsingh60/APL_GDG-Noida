@@ -1,6 +1,7 @@
 // In-memory storage for registration status
 let registrationOpen = true
 let projectorVisible = true
+let judgingEnabled = false
 
 export function setRegistrationOpen(status: boolean) {
   registrationOpen = status
@@ -18,4 +19,13 @@ export function setProjectorVisible(visible: boolean) {
 
 export function getProjectorVisible() {
   return projectorVisible
+}
+
+export function setJudgingEnabled(enabled: boolean) {
+  judgingEnabled = enabled
+  return judgingEnabled
+}
+
+export function getJudgingEnabled() {
+  return judgingEnabled
 }

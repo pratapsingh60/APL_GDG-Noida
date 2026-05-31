@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { setRegistrationOpen, getRegistrationOpen, setProjectorVisible, getProjectorVisible } from '@/lib/registrationStatus'
+import { setRegistrationOpen, getRegistrationOpen, setProjectorVisible, getProjectorVisible, setJudgingEnabled, getJudgingEnabled } from '@/lib/registrationStatus'
 import { getAllParticipants } from '@/services/sheetsService'
+import { autoJudgeAll } from '@/services/autoJudgeService'
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'GDG_ogs_teamAPL2k26'
-
-// Move judgingEnabled outside and make it persistent for the session
-let judgingEnabled = false
 
 export async function POST(request: NextRequest) {
   try {
     const { password, action } = await request.json()
     
     console.log('Admin action:', action)
-    console.log('Current judgingEnabled:', judgingEnabled)
+    console.log('Current judgingEnabled:', getJudgingEnabled())
     
     if (password !== ADMIN_PASSWORD) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -25,15 +23,27 @@ export async function POST(request: NextRequest) {
     }
     
     if (action === 'toggle_judging') {
-      judgingEnabled = !judgingEnabled
-      console.log('Toggled judgingEnabled to:', judgingEnabled)
-      return NextResponse.json({ success: true, judgingEnabled: judgingEnabled })
+      const newStatus = !getJudgingEnabled()
+      setJudgingEnabled(newStatus)
+      console.log('Toggled judgingEnabled to:', newStatus)
+      return NextResponse.json({ success: true, judgingEnabled: newStatus })
     }
     
     if (action === 'toggle_projector') {
       const newStatus = !getProjectorVisible()
       setProjectorVisible(newStatus)
       return NextResponse.json({ success: true, projectorVisible: newStatus })
+    }
+
+    if (action === 'trigger_judging') {
+      const { updated, failed } = await autoJudgeAll()
+      return NextResponse.json({
+        success: true,
+        message: `Judged ${updated.length} participants (${failed} failed)`,
+        active: true,
+        judgedCount: updated.filter((p: any) => !p.disqualified).length,
+        disqualifiedCount: updated.filter((p: any) => p.disqualified).length
+      })
     }
     
     if (action === 'get_stats') {
@@ -48,7 +58,7 @@ export async function POST(request: NextRequest) {
         disqualified,
         pending,
         registrationOpen: getRegistrationOpen(),
-        judgingEnabled: judgingEnabled,
+        judgingEnabled: getJudgingEnabled(),
         projectorVisible: getProjectorVisible(),
         participants: participants
       })

@@ -92,7 +92,7 @@ export async function judgeParticipant(participant: any): Promise<any> {
       'Full Name': participant['Full Name'],
       Judged: 'YES',
       Disqualified: 'YES',
-      'Disqualify Reason': `GitHub API Error: ${error.message}`,
+      'Disqualify Reason': `Pls Upload the repo link you are working on ${error.message}`,
       Score: 0,
       'Commit Count': 0
     }
