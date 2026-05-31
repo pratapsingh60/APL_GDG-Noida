@@ -152,3 +152,42 @@ export async function autoJudgeAll(): Promise<{ updated: any[]; failed: number }
   console.log(`[AutoJudge] Completed: ${updated.length} judged, ${failed} failed`)
   return { updated, failed }
 }
+
+// Re-sync and judge all participants (both judged and unjudged)
+export async function reSyncAll(): Promise<{ updated: any[]; failed: number }> {
+  const updated = []
+  let failed = 0
+  
+  const allParticipants = await getAllParticipants()
+  
+  if (allParticipants.length === 0) {
+    console.log('[AutoJudge] No participants to re-sync')
+    return { updated: [], failed: 0 }
+  }
+  
+  console.log(`[AutoJudge] Re-syncing ${allParticipants.length} participants...`)
+  
+  for (const participant of allParticipants) {
+    const judged = await judgeParticipant(participant)
+    
+    await updateParticipantInSheet({
+      id: judged.ID,
+      judged: judged.Judged,
+      disqualified: judged.Disqualified,
+      disqualifyReason: judged['Disqualify Reason'] || '',
+      score: String(judged.Score || 0),
+      commitCount: String(judged['Commit Count'] || 0)
+    })
+    
+    updated.push(judged)
+    
+    if (judged.Disqualified === 'YES' && judged['Disqualify Reason']?.includes('Error')) {
+      failed++
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 2000))
+  }
+  
+  console.log(`[AutoJudge] Completed re-sync: ${updated.length} judged, ${failed} failed`)
+  return { updated, failed }
+}

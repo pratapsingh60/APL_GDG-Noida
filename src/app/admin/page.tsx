@@ -8,6 +8,7 @@ export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false)
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [projectorUrl, setProjectorUrl] = useState('')
   const [accessCode, setAccessCode] = useState('')
 
@@ -138,6 +139,38 @@ export default function AdminPage() {
     }
   }
 
+  const triggerReSync = async () => {
+    setSyncing(true)
+    try {
+      const response = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, action: 're_sync' })
+      })
+      const result = await response.json()
+      console.log('Re-sync result:', result)
+      if (result.success) {
+        alert(result.message || 'GitHub repositories re-synced successfully.')
+        
+        // Refresh stats
+        const statsResponse = await fetch('/api/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password, action: 'get_stats' })
+        })
+        const newStats = await statsResponse.json()
+        setStats(newStats)
+      } else {
+        alert(`Re-sync failed: ${result.error || 'Unknown error'}`)
+      }
+    } catch (error: any) {
+      console.error('Trigger re-sync failed:', error)
+      alert(`Trigger re-sync failed: ${error.message}`)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   if (!authenticated) {
     return (
       <div className="min-h-screen bg-stadium-darker flex items-center justify-center pt-24">
@@ -212,11 +245,24 @@ export default function AdminPage() {
             >
               {stats?.projectorVisible ? 'Hide Live Button' : 'Show Live Button'}
             </button>
+
+            <button
+              onClick={triggerReSync}
+              disabled={syncing}
+              className="px-6 py-3 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 transition text-white disabled:opacity-50"
+            >
+              {syncing ? 'Syncing GitHub...' : 'Re-sync All GitHub Data'}
+            </button>
           </div>
           <div className="mt-4 space-y-1">
             <p className="text-sm">Registration Status: {stats?.registrationOpen ? '🟢 Open' : '🔴 Closed'}</p>
             <p className="text-sm">Auto-Judging Status: {stats?.judgingEnabled ? '🟢 Running (every 2 min)' : '🔴 Stopped'}</p>
             <p className="text-sm">Live Button: {stats?.projectorVisible ? '🟢 Visible' : '🔴 Hidden'}</p>
+            {syncing && (
+              <p className="text-sm text-yellow-400 animate-pulse">
+                ⏳ Re-syncing all participants, this might take a minute...
+              </p>
+            )}
           </div>
         </div>
         

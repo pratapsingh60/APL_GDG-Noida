@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { setRegistrationOpen, getRegistrationOpen, setProjectorVisible, getProjectorVisible, setJudgingEnabled, getJudgingEnabled } from '@/lib/registrationStatus'
 import { getAllParticipants } from '@/services/sheetsService'
-import { autoJudgeAll } from '@/services/autoJudgeService'
+import { autoJudgeAll, reSyncAll } from '@/services/autoJudgeService'
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'GDG_ogs_teamAPL2k26'
 
@@ -43,6 +43,16 @@ export async function POST(request: NextRequest) {
         active: true,
         judgedCount: updated.filter((p: any) => !p.disqualified).length,
         disqualifiedCount: updated.filter((p: any) => p.disqualified).length
+      })
+    }
+
+    if (action === 're_sync') {
+      const { updated, failed } = await reSyncAll()
+      return NextResponse.json({
+        success: true,
+        message: `Re-synced ${updated.length} participants (${failed} failed)`,
+        updatedCount: updated.length,
+        failedCount: failed
       })
     }
     
