@@ -131,7 +131,7 @@ export default function Home() {
         <h2 className="text-4xl font-bold text-center mb-4">The Challenges</h2>
         <p className="text-gray-400 text-center mb-12">Build something extraordinary in 4 hours</p>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {challenges.map((challenge) => {
             const Icon = iconMap[challenge.icon] || Gamepad
             return (

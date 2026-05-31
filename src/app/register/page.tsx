@@ -15,10 +15,9 @@ export default function RegisterPage() {
   const [result, setResult] = useState<{ id?: string; message?: string; error?: string } | null>(null)
 
   const challenges = [
-    'Gamified Habit Builder',
-    'Autonomous AI Agent',
-    'Real-time Collaboration Hub',
-    'Interactive Data Visualizer'
+    "CricketIQ:Transforming Cricket Data into Fan Intelligence",
+    "Beyond the Resume – AI-Powered Career Intelligence Platform",
+    "SmartSpace – The AI Real Estate Companion"
   ]
 
   const handleSubmit = async (e: React.FormEvent) => {
