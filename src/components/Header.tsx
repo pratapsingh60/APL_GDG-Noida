@@ -42,9 +42,9 @@ export default function Header() {
             <Link href="/" className="text-white hover:text-stadium-green transition">Home</Link>
             <Link href="/register" className="text-white hover:text-stadium-green transition">Register</Link>
             <Link href="/leaderboard" className="text-white hover:text-stadium-green transition">Leaderboard</Link>
-            {projectorVisible && (
+            {/* {projectorVisible && (
               <Link href="/projector" className="text-white hover:text-stadium-green transition">Live</Link>
-            )}
+            )} */}
           </div>
 
           <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -57,9 +57,9 @@ export default function Header() {
             <Link href="/" className="text-white hover:text-stadium-green transition" onClick={() => setMobileMenuOpen(false)}>Home</Link>
             <Link href="/register" className="text-white hover:text-stadium-green transition" onClick={() => setMobileMenuOpen(false)}>Register</Link>
             <Link href="/leaderboard" className="text-white hover:text-stadium-green transition" onClick={() => setMobileMenuOpen(false)}>Leaderboard</Link>
-            {projectorVisible && (
+            {/* {projectorVisible && (
               <Link href="/projector" className="text-white hover:text-stadium-green transition" onClick={() => setMobileMenuOpen(false)}>Live</Link>
-            )}
+            )} */}
           </div>
         )}
       </div>
