@@ -14,10 +14,10 @@ export default function LeaderboardPage() {
       const data = await response.json()
       
       const judged = data.participants
-        .filter((p: any) => p.judged && !p.disqualified)
-        .sort((a: any, b: any) => (b.score || 0) - (a.score || 0))
+        .filter((p: any) => p['Judged'] === 'YES' && p['Disqualified'] !== 'YES')
+        .sort((a: any, b: any) => (Number(b['Score']) || 0) - (Number(a['Score']) || 0))
       
-      const disqualified = data.participants.filter((p: any) => p.disqualified)
+      const disqualified = data.participants.filter((p: any) => p['Disqualified'] === 'YES')
       
       setParticipants([...judged, ...disqualified])
       setLastUpdated(data.lastUpdated)
@@ -58,31 +58,35 @@ export default function LeaderboardPage() {
                   <th className="px-6 py-4 text-left">Rank</th>
                   <th className="px-6 py-4 text-left">Participant</th>
                   <th className="px-6 py-4 text-left">Problem Statement</th>
+                  <th className="px-6 py-4 text-center">Commits</th>
                   <th className="px-6 py-4 text-center">Score</th>
                   <th className="px-6 py-4 text-center">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {participants.map((p, idx) => (
-                  <tr key={p.id} className="border-t border-white/10 hover:bg-white/5">
+                  <tr key={p['ID '] || idx} className="border-t border-white/10 hover:bg-white/5">
                     <td className="px-6 py-4 font-bold">
-                      {p.disqualified ? '🚫' : idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                      {p['Disqualified'] === 'YES' ? '🚫' : idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
                     </td>
-                    <td className="px-6 py-4">{p.fullName}</td>
-                    <td className="px-6 py-4 text-gray-300">{p.problemStatement}</td>
+                    <td className="px-6 py-4">{p['Full Name']}</td>
+                    <td className="px-6 py-4 text-gray-300">{p['Problem Statement']}</td>
+                    <td className="px-6 py-4 text-center font-bold">
+                      {p['Commit Count'] || '0'}
+                    </td>
                     <td className="px-6 py-4 text-center font-bold text-xl">
-                      {p.disqualified ? (
+                      {p['Disqualified'] === 'YES' ? (
                         <span className="text-red-400 text-sm">Disqualified</span>
                       ) : (
-                        <span className="text-stadium-green">{p.score || 'Pending'}</span>
+                        <span className="text-stadium-green">{p['Score'] || 'Pending'}</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {p.disqualified ? (
-                        <span className="text-red-400 text-xs" title={p.disqualifyReason}>
-                          ⚠️ {p.disqualifyReason?.substring(0, 30)}...
+                      {p['Disqualified'] === 'YES' ? (
+                        <span className="text-red-400 text-xs" title={p['Disqulify Reason']}>
+                          ⚠️ {p['Disqulify Reason']?.substring(0, 30)}...
                         </span>
-                      ) : p.judged ? (
+                      ) : p['Judged'] === 'YES' ? (
                         <span className="text-green-400 text-xs">✓ Judged</span>
                       ) : (
                         <span className="text-yellow-400 text-xs">⏳ Judging in progress</span>

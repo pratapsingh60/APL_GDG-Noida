@@ -15,14 +15,15 @@ export function isJudgingActive(judgingEnabled: boolean): boolean {
 
 // Judge a single participant
 export async function judgeParticipant(participant: any): Promise<any> {
+  const pId = participant['ID '] || participant.ID || participant.id;
   try {
-    console.log(`[AutoJudge] Judging ${participant.ID}: ${participant['Full Name']}`)
+    console.log(`[AutoJudge] Judging ${pId}: ${participant['Full Name']}`)
     console.log(`[AutoJudge] Looking for commits between:`, CHALLENGE_START.toISOString(), 'and', CHALLENGE_END.toISOString())
-    const githubRepo = participant['GitHub Repo']
+    const githubRepo = participant['Github Repo'] || participant['GitHub Repo']
     
     if (!githubRepo) {
       return {
-        ID: participant.ID,
+        ID: pId,
         'Full Name': participant['Full Name'],
         Judged: 'YES',
         Disqualified: 'YES',
@@ -39,7 +40,7 @@ export async function judgeParticipant(participant: any): Promise<any> {
     
     if (disqualifyReason) {
       return {
-        ID: participant.ID,
+        ID: pId,
         'Full Name': participant['Full Name'],
         Judged: 'YES',
         Disqualified: 'YES',
@@ -66,10 +67,10 @@ export async function judgeParticipant(participant: any): Promise<any> {
       CHALLENGE_END
     )
     
-    console.log(`[AutoJudge] Score for ${participant.ID}: ${scoreResult.finalScore} (${commits.length} commits)`)
+    console.log(`[AutoJudge] Score for ${pId}: ${scoreResult.finalScore} (${commits.length} commits)`)
     
     return {
-      ID: participant.ID,
+      ID: pId,
       'Full Name': participant['Full Name'],
       Judged: 'YES',
       Disqualified: 'NO',
@@ -85,9 +86,9 @@ export async function judgeParticipant(participant: any): Promise<any> {
     }
     
   } catch (error: any) {
-    console.error(`[AutoJudge] Error judging ${participant.ID}:`, error.message)
+    console.error(`[AutoJudge] Error judging ${pId}:`, error.message)
     return {
-      ID: participant.ID,
+      ID: pId,
       'Full Name': participant['Full Name'],
       Judged: 'YES',
       Disqualified: 'YES',
