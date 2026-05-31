@@ -75,56 +75,51 @@ export default function AdminPage() {
   }
 
   const toggleJudging = async () => {
-  try {
-    // First toggle the judging flag in admin API
-    const response = await fetch('/api/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password, action: 'toggle_judging' })
-    })
-    
-    const data = await response.json()
-    if (data.success) {
-      // Also update the auto-judge API
-      await fetch('/api/auto-judge', {
+    try {
+      const response = await fetch('/api/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: data.judgingEnabled })
+        body: JSON.stringify({ password, action: 'toggle_judging' })
       })
       
-      setStats({ ...stats, judgingEnabled: data.judgingEnabled })
-      alert(`Auto-judging ${data.judgingEnabled ? 'STARTED' : 'STOPPED'}`)
-      
-      // If enabled, trigger immediate judging
-      if (data.judgingEnabled) {
-        triggerAutoJudge()
+      const data = await response.json()
+      if (data.success) {
+        setStats({ ...stats, judgingEnabled: data.judgingEnabled })
+        alert(`Auto-judging ${data.judgingEnabled ? 'STARTED' : 'STOPPED'}`)
+        
+        if (data.judgingEnabled) {
+          triggerAutoJudge()
+        }
       }
+    } catch (error) {
+      alert('Failed to toggle judging')
     }
-  } catch (error) {
-    alert('Failed to toggle judging')
   }
-}
 
-const triggerAutoJudge = async () => {
-  try {
-    const response = await fetch('/api/auto-judge')
-    const result = await response.json()
-    console.log('Auto-judge result:', result)
-    if (result.success) {
-      alert(`Judged ${result.judgedCount || 0} participants`)
-      // Refresh stats
-      const statsResponse = await fetch('/api/admin', {
+  const triggerAutoJudge = async () => {
+    try {
+      const response = await fetch('/api/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, action: 'get_stats' })
+        body: JSON.stringify({ password, action: 'trigger_judging' })
       })
-      const newStats = await statsResponse.json()
-      setStats(newStats)
+      const result = await response.json()
+      console.log('Auto-judge result:', result)
+      if (result.success) {
+        alert(`Judged ${result.judgedCount || 0} participants`)
+        // Refresh stats
+        const statsResponse = await fetch('/api/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password, action: 'get_stats' })
+        })
+        const newStats = await statsResponse.json()
+        setStats(newStats)
+      }
+    } catch (error) {
+      console.error('Trigger auto-judge failed:', error)
     }
-  } catch (error) {
-    console.error('Trigger auto-judge failed:', error)
   }
-}
   const toggleProjector = async () => {
     try {
       const response = await fetch('/api/admin', {

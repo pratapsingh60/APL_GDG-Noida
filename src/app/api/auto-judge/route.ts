@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server'
 import { autoJudgeAll } from '@/services/autoJudgeService'
-
-// This should match the same variable - in production, use a database
-let judgingEnabled = false
+import { getJudgingEnabled, setJudgingEnabled } from '@/lib/registrationStatus'
 
 export async function GET() {
   try {
-    console.log('Auto-judge called, judgingEnabled:', judgingEnabled)
+    const isEnabled = getJudgingEnabled()
+    console.log('Auto-judge called, judgingEnabled:', isEnabled)
     
-    if (!judgingEnabled) {
+    if (!isEnabled) {
       return NextResponse.json({ 
         message: 'Judging is not active', 
         judgingEnabled: false, 
@@ -34,7 +33,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const { enabled } = await request.json()
-  judgingEnabled = enabled
-  console.log('Auto-judge enabled set to:', judgingEnabled)
-  return NextResponse.json({ success: true, judgingEnabled })
+  setJudgingEnabled(enabled)
+  console.log('Auto-judge enabled set to:', enabled)
+  return NextResponse.json({ success: true, judgingEnabled: enabled })
 }
