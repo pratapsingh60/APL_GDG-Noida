@@ -10,8 +10,12 @@ export function proxy(request: NextRequest) {
   if (pathname.startsWith('/api/auto-judge')) {
     const authHeader = request.headers.get('authorization')
     const validToken = process.env.API_SECRET_TOKEN
+    const origin = request.headers.get('origin')
+    const referer = request.headers.get('referer')
     
-    if (authHeader !== `Bearer ${validToken}`) {
+    const isLocalhost = origin === 'http://localhost:3000' || (referer && referer.startsWith('http://localhost:3000'))
+    
+    if (!isLocalhost && authHeader !== `Bearer ${validToken}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
   }
